@@ -1,0 +1,95 @@
+{
+  "project_title": "Verdant CRM - Enterprise Client & Pipeline Management System",
+  "archetype": "ORGANIC & PERFORMANCE HYBRID (Emerald Green & White)",
+  "app_type": "saas_app / dashboard",
+  "theme": "Light theme primary with rich Forest/Emerald Green accents & optional Dark Mode support",
+  "color_palette": {
+    "primary": "#059669",
+    "primary_dark": "#047857",
+    "primary_light": "#10B981",
+    "primary_subtle": "#ECFDF5",
+    "background_light": "#FAFAFA",
+    "surface_white": "#FFFFFF",
+    "border_subtle": "#E5E7EB",
+    "border_green": "#A7F3D0",
+    "text_main": "#111827",
+    "text_muted": "#4B5563",
+    "text_subtle": "#9CA3AF",
+    "accent_emerald": "#059669",
+    "accent_mint": "#34D399",
+    "status_lead": "#3B82F6",
+    "status_contacted": "#8B5CF6",
+    "status_proposal": "#F59E0B",
+    "status_negotiation": "#D97706",
+    "status_won": "#10B981",
+    "status_lost": "#EF4444"
+  },
+  "typography": {
+    "font_family_headings": "Plus Jakarta Sans, Outfit, sans-serif",
+    "font_family_body": "Inter, DM Sans, sans-serif",
+    "font_family_mono": "JetBrains Mono, monospace",
+    "h1": "text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900",
+    "h2": "text-2xl sm:text-3xl font-bold tracking-tight text-slate-900",
+    "h3": "text-lg sm:text-xl font-semibold text-slate-900",
+    "body_regular": "text-sm sm:text-base font-normal text-slate-600 leading-relaxed",
+    "small_label": "text-xs font-semibold uppercase tracking-wider text-emerald-700"
+  },
+  "layout_and_grids": {
+    "type": "High Density Dashboard Grid + Kanban Pipeline",
+    "sidebar": "Fixed left navigation with emerald brand logo, role indicator (Admin / Employee badge), navigation items (Dashboard, Clients, Pipeline, Tasks, Employees), and user profile dropdown.",
+    "topbar": "Sticky search header, quick action button ('+ Add Client', '+ New Task'), notification bell with counter, and Role Switcher demo toggle (Admin Mode vs Employee Mode).",
+    "main_content_area": "Generous spacing (p-6 to p-8), max-w-7xl, clean white card backgrounds with subtle borders (border-slate-200) and 1px emerald hover accents.",
+    "bento_dashboard": "4-col metric overview cards (Total Clients, Active Deals, Total Pipeline Value, Win Rate) with sparkline trends + 2-col lower section (Stage Distribution Chart + Upcoming Tasks/Follow-ups)."
+  },
+  "key_features_to_implement": {
+    "1_authentication": "Login screen with Email + Password inputs, Demo Preset Buttons ('Login as Admin - Alex Morgan', 'Login as Employee - Sarah Jenkins'), and clear company logo header.",
+    "2_dashboard_overview": "Real-time metrics, interactive stage value charts (Recharts / Chart.js / Shadcn Chart), recent client activity feed, and pending tasks reminder widget.",
+    "3_client_management": "Client Directory with search input, stage filter dropdown, employee assignment filter, table view with status badges, deal value, assigned rep avatar, and quick action menu (Edit, View Detail, Change Stage, Delete).",
+    "4_client_detail_modal": "Comprehensive drawer/modal showing client profile, deal stage timeline, contact details, deal value editor, task/notes log, and assigned employee tag.",
+    "5_pipeline_kanban": "Interactive deal stage columns (Lead -> Contacted -> Proposal -> Negotiation -> Closed Won -> Closed Lost) with deal summary cards, stage totals, drag/click stage movement, and deal value counter.",
+    "6_tasks_and_reminders": "Task manager with status filters (Pending, In Progress, Completed), priority badges (High, Medium, Low), due dates, link to associated client, and quick completion checkbox.",
+    "7_admin_employee_management": "Admin-only view to add new employees, assign client loads, view employee performance metrics (deals closed, total clients, task completion rate), and toggle access roles."
+  },
+  "image_urls": {
+    "company_logo": "https://images.unsplash.com/photo-1707061229292-ad11decf3eea?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODB8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBncmVlbiUyMGNvbXBhbnklMjBsb2dvJTIwaWNvbnxlbnwwfHx8fDE3ODg5NjMzNDB8MA&ixlib=rb-4.1.0&q=85",
+    "avatars": [
+      {
+        "name": "Alex Morgan (Admin)",
+        "role": "CRM Administrator / Sales Lead",
+        "url": "https://images.unsplash.com/photo-1560250097-0b93528c311a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzF8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBjb3Jwb3JhdGUlMjBoZWFkc2hvdCUyMGF2YXRhcnxlbnwwfHx8fDE3ODg5NjMzNDB8MA&ixlib=rb-4.1.0&q=85"
+      },
+      {
+        "name": "Sarah Jenkins (Employee)",
+        "role": "Senior Account Executive",
+        "url": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzF8MHwxfHNlYXJjaHwyfHxwcm9mZXNzaW9uYWwlMjBjb3Jwb3JhdGUlMjBoZWFkc2hvdCUyMGF2YXRhcnxlbnwwfHx8fDE3ODg5NjMzNDB8MA&ixlib=rb-4.1.0&q=85"
+      },
+      {
+        "name": "David Chen (Employee)",
+        "role": "Sales Representative",
+        "url": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzF8MHwxfHNlYXJjaHwzfHxwcm9mZXNzaW9uYWwlMjBjb3Jwb3JhdGUlMjBoZWFkc2hvdCUyMGF2YXRhcnxlbnwwfHx8fDE3ODg5NjMzNDB8MA&ixlib=rb-4.1.0&q=85"
+      },
+      {
+        "name": "Michael Ross (Employee)",
+        "role": "Client Relationship Manager",
+        "url": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzF8MHwxfHNlYXJjaHw0fHxwcm9mZXNzaW9uYWwlMjBjb3Jwb3JhdGUlMjBoZWFkc2hvdCUyMGF2YXRhcnxlbnwwfHx8fDE3ODg5NjMzNDB8MA&ixlib=rb-4.1.0&q=85"
+      }
+    ]
+  },
+  "instructions_to_main_agent": [
+    "Ensure all components are in .js / .jsx syntax (not TypeScript .tsx).",
+    "Use Emerald Green (#059669) as the core primary brand tone with emerald-50 backgrounds for subtle highlighted states.",
+    "Implement full mock state persistence using React useState / Context / localStorage so changes (adding client, moving pipeline stage, creating task, adding employee) persist seamlessly during demo.",
+    "Implement Role-Based Access Control (RBAC): Admin sees all clients and Employee Management tab; Employee sees ONLY their assigned clients and cannot add/delete employees.",
+    "Provide a prominent 'Switch Role' demo toggle button in the top bar or header so evaluators can test both Admin and Employee perspectives effortlessly.",
+    "Every button, input, tab, table row, card, and modal must include explicit data-testid attributes (e.g., data-testid='add-client-button', data-testid='client-search-input', data-testid='pipeline-stage-proposal').",
+    "DO NOT use fully transparent backgrounds on headers, dropdowns, or popovers; always use solid bg-white or heavy backdrop-blur with bg-white/90 and explicit borders.",
+    "Use Lucide-React icons for crisp dashboard UI (Users, Briefcase, DollarSign, CheckSquare, ShieldCheck, UserPlus, Search, Filter, Plus, ArrowRight, MoreVertical).",
+    "Integrate Sonner toasts for instant feedback when client deals are updated, tasks are added, or stage status changes."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": {
+    "data_testid_rule": "MUST add data-testid to every interactive or key data element.",
+    "contrast_rule": "Text over green badges or buttons must be crisp white (#FFFFFF) or deep green (#064E3B). Never dark gray on dark green.",
+    "spacing_rule": "Avoid tight cramming. Use p-6/p-8 for containers and gap-6 for grids.",
+    "micro_interactions": "Add transition-all duration-200, hover:shadow-md, hover:-translate-y-0.5 to card components."
+  }
+}

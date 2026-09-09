@@ -1,0 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: #ffffff;
+}
+
+h1, h2, h3, h4, .font-display {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+@layer base {
+    :root {
+        --background: 0 0% 100%;
+        --foreground: 213 55% 18%;
+        --card: 0 0% 100%;
+        --card-foreground: 213 55% 18%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 213 55% 18%;
+        --primary: 160 84% 30%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 152 76% 96%;
+        --secondary-foreground: 160 84% 22%;
+        --muted: 210 20% 96%;
+        --muted-foreground: 215 16% 47%;
+        --accent: 152 76% 96%;
+        --accent-foreground: 160 84% 22%;
+        --destructive: 0 72% 51%;
+        --destructive-foreground: 0 0% 100%;
+        --border: 214 20% 90%;
+        --input: 214 20% 90%;
+        --ring: 160 84% 30%;
+        --chart-1: 160 84% 39%;
+        --chart-2: 213 55% 24%;
+        --chart-3: 43 96% 56%;
+        --chart-4: 217 91% 60%;
+        --chart-5: 0 72% 51%;
+        --radius: 0.75rem;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+    body {
+        @apply bg-background text-foreground;
+    }
+}
+
+.brand-navy { color: #0F2C4D; }
+.bg-brand-navy { background-color: #0F2C4D; }
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
