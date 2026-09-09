@@ -39,7 +39,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, MoreVertical, Pencil, Trash2, Users } from "lucide-react";
+import { Plus, Search, MoreVertical, Pencil, Trash2, Users, Upload, Download, FileSpreadsheet } from "lucide-react";
 
 const STAGES = ["Lead", "Contacted", "Proposal", "Negotiation", "Closed Won", "Closed Lost"];
 const EMPTY = { name: "", email: "", phone: "", company: "", notes: "", stage: "Lead", deal_value: "", assigned_to: null };
@@ -58,6 +58,9 @@ export default function Clients() {
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importFile, setImportFile] = useState(null);
+  const [importing, setImporting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -122,6 +125,37 @@ export default function Clients() {
 
   const empName = (id) => employees.find((e) => e.id === id)?.name;
 
+  const runImport = async () => {
+    if (!importFile) return toast.error("Choose a CSV or Excel file first");
+    setImporting(true);
+    const fd = new FormData();
+    fd.append("file", importFile);
+    try {
+      const { data } = await api.post("/clients/import", fd);
+      toast.success(`Imported ${data.created} client${data.created === 1 ? "" : "s"}`);
+      if (data.errors?.length) toast.warning(`${data.errors.length} row(s) skipped (missing name)`);
+      setImportOpen(false);
+      setImportFile(null);
+      load();
+    } catch (e) {
+      toast.error(formatApiErrorDetail(e.response?.data?.detail));
+    }
+    setImporting(false);
+  };
+
+  const downloadTemplate = () => {
+    const csv =
+      "name,email,phone,company,stage,deal_value,notes\n" +
+      "Rahul Mehta,rahul@brightcorp.in,+91 98765 43210,Bright Corp,Lead,50000,First meeting done\n";
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "nivi_clients_template.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6" data-testid="clients-page">
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
@@ -149,6 +183,14 @@ export default function Clients() {
               ))}
             </SelectContent>
           </Select>
+          <Button
+            variant="outline"
+            onClick={() => { setImportFile(null); setImportOpen(true); }}
+            className="h-11 border-emerald-200 text-emerald-700 hover:bg-emerald-50 font-semibold"
+            data-testid="import-clients-button"
+          >
+            <Upload className="h-4 w-4 mr-1.5" /> Import
+          </Button>
           <Button
             onClick={openCreate}
             className="h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
@@ -332,6 +374,50 @@ export default function Clients() {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
             <Button onClick={save} disabled={saving} className="bg-emerald-600 hover:bg-emerald-700 text-white" data-testid="client-save-button">
               {saving ? "Saving…" : editing ? "Save Changes" : "Add Client"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={importOpen} onOpenChange={setImportOpen}>
+        <DialogContent className="bg-white sm:max-w-md" data-testid="import-dialog">
+          <DialogHeader>
+            <DialogTitle className="font-display">Import Clients</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-2">
+            <p className="text-sm text-slate-500">
+              Upload a CSV or Excel file. Recognised columns: <span className="font-medium text-slate-700">name</span> (required),
+              email, phone, company, stage, deal_value, notes.
+            </p>
+            <button
+              onClick={downloadTemplate}
+              data-testid="download-template-button"
+              className="inline-flex items-center gap-2 text-sm font-medium text-emerald-700 hover:text-emerald-800 w-fit"
+            >
+              <Download className="h-4 w-4" /> Download CSV template
+            </button>
+            <label
+              htmlFor="import-file"
+              className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 py-8 cursor-pointer hover:border-emerald-300 hover:bg-emerald-50/40 transition-colors"
+            >
+              <FileSpreadsheet className="h-8 w-8 text-emerald-500" />
+              <span className="text-sm text-slate-600">
+                {importFile ? importFile.name : "Click to choose a .csv or .xlsx file"}
+              </span>
+              <input
+                id="import-file"
+                type="file"
+                accept=".csv,.xlsx,.xls"
+                className="hidden"
+                data-testid="import-file-input"
+                onChange={(e) => setImportFile(e.target.files?.[0] || null)}
+              />
+            </label>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setImportOpen(false)}>Cancel</Button>
+            <Button onClick={runImport} disabled={importing} className="bg-emerald-600 hover:bg-emerald-700 text-white" data-testid="import-submit-button">
+              {importing ? "Importing…" : "Import Clients"}
             </Button>
           </DialogFooter>
         </DialogContent>

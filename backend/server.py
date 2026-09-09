@@ -5,7 +5,9 @@ import os
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response, Query
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response, Query, UploadFile, File
+import pandas as pd
+import io
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field, EmailStr
@@ -240,6 +242,60 @@ async def create_client(data: ClientInput, user: dict = Depends(get_current_user
     }
     await db.clients.insert_one(doc)
     return await enrich_client(doc)
+
+
+@api_router.post("/clients/import")
+async def import_clients(file: UploadFile = File(...), user: dict = Depends(get_current_user)):
+    content = await file.read()
+    fname = (file.filename or "").lower()
+    try:
+        if fname.endswith(".xlsx") or fname.endswith(".xls"):
+            df = pd.read_excel(io.BytesIO(content))
+        else:
+            df = pd.read_csv(io.BytesIO(content))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Could not read file. Use a valid CSV or Excel file. ({e})")
+
+    df.columns = [str(c).strip().lower() for c in df.columns]
+
+    def pick(row, *keys):
+        for k in keys:
+            if k in row and pd.notna(row[k]):
+                return row[k]
+        return None
+
+    created, errors = 0, []
+    now = datetime.now(timezone.utc).isoformat()
+    for i, r in df.iterrows():
+        row = r.to_dict()
+        nm = pick(row, "name", "client name", "full name")
+        if not nm or str(nm).strip() == "":
+            errors.append(f"Row {int(i) + 2}: missing name")
+            continue
+        stage = str(pick(row, "stage", "pipeline stage") or "Lead").strip()
+        if stage not in STAGES:
+            stage = "Lead"
+        dv_raw = pick(row, "deal_value", "deal value", "value", "amount")
+        try:
+            dv = float(str(dv_raw).replace(",", "").replace("₹", "").strip()) if dv_raw is not None else 0.0
+        except Exception:
+            dv = 0.0
+        doc = {
+            "id": str(uuid.uuid4()),
+            "name": str(nm).strip(),
+            "email": str(pick(row, "email", "e-mail") or "").strip(),
+            "phone": str(pick(row, "phone", "mobile", "contact", "phone number") or "").strip(),
+            "company": str(pick(row, "company", "organization", "organisation") or "").strip(),
+            "notes": str(pick(row, "notes", "note", "remarks") or "").strip(),
+            "stage": stage,
+            "deal_value": dv,
+            "assigned_to": None if user["role"] == "admin" else user["id"],
+            "created_by": user["id"],
+            "created_at": now, "updated_at": now,
+        }
+        await db.clients.insert_one(doc)
+        created += 1
+    return {"created": created, "errors": errors, "total": int(len(df))}
 
 
 async def get_owned_client(client_id: str, user: dict) -> dict:
