@@ -103,7 +103,8 @@ class ClientInput(BaseModel):
     name: str
     email: Optional[str] = ""
     phone: Optional[str] = ""
-    company: Optional[str] = ""
+    country: Optional[str] = ""
+    services: Optional[str] = ""
     notes: Optional[str] = ""
     stage: str = "Lead"
     deal_value: float = 0.0
@@ -218,6 +219,8 @@ async def list_clients(user: dict = Depends(get_current_user),
         query["$or"] = [
             {"name": {"$regex": q, "$options": "i"}},
             {"email": {"$regex": q, "$options": "i"}},
+            {"country": {"$regex": q, "$options": "i"}},
+            {"services": {"$regex": q, "$options": "i"}},
             {"company": {"$regex": q, "$options": "i"}},
             {"phone": {"$regex": q, "$options": "i"}},
         ]
@@ -234,7 +237,8 @@ async def create_client(data: ClientInput, user: dict = Depends(get_current_user
         assigned = user["id"]  # employees can only create clients assigned to themselves
     doc = {
         "id": str(uuid.uuid4()), "name": data.name, "email": data.email or "",
-        "phone": data.phone or "", "company": data.company or "", "notes": data.notes or "",
+        "phone": data.phone or "", "country": data.country or "", "services": data.services or "",
+        "notes": data.notes or "",
         "stage": data.stage, "deal_value": float(data.deal_value or 0),
         "assigned_to": assigned, "created_by": user["id"],
         "created_at": datetime.now(timezone.utc).isoformat(),
@@ -285,7 +289,8 @@ async def import_clients(file: UploadFile = File(...), user: dict = Depends(get_
             "name": str(nm).strip(),
             "email": str(pick(row, "email", "e-mail") or "").strip(),
             "phone": str(pick(row, "phone", "mobile", "contact", "phone number") or "").strip(),
-            "company": str(pick(row, "company", "organization", "organisation") or "").strip(),
+            "country": str(pick(row, "country", "location", "region") or "").strip(),
+            "services": str(pick(row, "services", "service", "product") or "").strip(),
             "notes": str(pick(row, "notes", "note", "remarks") or "").strip(),
             "stage": stage,
             "deal_value": dv,
@@ -320,7 +325,8 @@ async def update_client(client_id: str, data: ClientInput, user: dict = Depends(
         raise HTTPException(status_code=400, detail="Invalid stage")
     update = {
         "name": data.name, "email": data.email or "", "phone": data.phone or "",
-        "company": data.company or "", "notes": data.notes or "", "stage": data.stage,
+        "country": data.country or "", "services": data.services or "",
+        "notes": data.notes or "", "stage": data.stage,
         "deal_value": float(data.deal_value or 0),
         "updated_at": datetime.now(timezone.utc).isoformat(),
     }

@@ -71,7 +71,7 @@ export default function Pipeline() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-slate-800 truncate">{c.name}</p>
-                        <p className="text-xs text-slate-400 truncate">{c.company || c.email || "—"}</p>
+                        <p className="text-xs text-slate-400 truncate">{c.country || c.company || c.email || "—"}</p>
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger className="outline-none opacity-60 group-hover:opacity-100" data-testid={`move-client-${c.id}`}>

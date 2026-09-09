@@ -42,7 +42,7 @@ import {
 import { Plus, Search, MoreVertical, Pencil, Trash2, Users, Upload, Download, FileSpreadsheet } from "lucide-react";
 
 const STAGES = ["Lead", "Contacted", "Proposal", "Negotiation", "Closed Won", "Closed Lost"];
-const EMPTY = { name: "", email: "", phone: "", company: "", notes: "", stage: "Lead", deal_value: "", assigned_to: null };
+const EMPTY = { name: "", email: "", phone: "", country: "", services: "", notes: "", stage: "Lead", deal_value: "", assigned_to: null };
 
 export default function Clients() {
   const { user } = useAuth();
@@ -88,7 +88,7 @@ export default function Clients() {
   };
   const openEdit = (c) => {
     setEditing(c);
-    setForm({ ...c, deal_value: String(c.deal_value ?? ""), assigned_to: c.assigned_to || null });
+    setForm({ ...EMPTY, ...c, country: c.country || "", services: c.services || "", deal_value: String(c.deal_value ?? ""), assigned_to: c.assigned_to || null });
     setDialogOpen(true);
   };
 
@@ -145,8 +145,8 @@ export default function Clients() {
 
   const downloadTemplate = () => {
     const csv =
-      "name,email,phone,company,stage,deal_value,notes\n" +
-      "Rahul Mehta,rahul@brightcorp.in,+91 98765 43210,Bright Corp,Lead,50000,First meeting done\n";
+      "name,email,phone,country,services,stage,deal_value,notes\n" +
+      "Rahul Mehta,rahul@brightcorp.in,+1 202 555 0100,United States,Wealth Management,Lead,50000,First meeting done\n";
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -164,7 +164,7 @@ export default function Clients() {
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search clients, company, email…"
+            placeholder="Search name, country, services, email…"
             className="pl-10 h-11 bg-white"
             data-testid="client-search-input"
           />
@@ -208,8 +208,9 @@ export default function Clients() {
               <tr className="border-b border-slate-100 bg-slate-50/60 text-left">
                 <th className="px-5 py-3 font-semibold text-slate-500">Client</th>
                 <th className="px-5 py-3 font-semibold text-slate-500">Contact</th>
+                <th className="px-5 py-3 font-semibold text-slate-500">Services</th>
                 <th className="px-5 py-3 font-semibold text-slate-500">Stage</th>
-                <th className="px-5 py-3 font-semibold text-slate-500 text-right">Deal Value</th>
+                <th className="px-5 py-3 font-semibold text-slate-500 text-right">Deal (USD)</th>
                 {isAdmin && <th className="px-5 py-3 font-semibold text-slate-500">Assigned To</th>}
                 <th className="px-5 py-3 w-12"></th>
               </tr>
@@ -217,14 +218,14 @@ export default function Clients() {
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-12 text-center text-slate-400">
+                  <td colSpan={7} className="px-5 py-12 text-center text-slate-400">
                     Loading…
                   </td>
                 </tr>
               )}
               {!loading && clients.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-16 text-center">
+                  <td colSpan={7} className="px-5 py-16 text-center">
                     <Users className="h-10 w-10 text-slate-200 mx-auto mb-3" />
                     <p className="text-slate-500 font-medium">No clients found</p>
                     <p className="text-sm text-slate-400">Add your first client to get started.</p>
@@ -245,7 +246,7 @@ export default function Clients() {
                         </div>
                         <div className="min-w-0">
                           <p className="font-medium text-slate-800 truncate">{c.name}</p>
-                          <p className="text-xs text-slate-400 truncate">{c.company || "—"}</p>
+                          <p className="text-xs text-slate-400 truncate">{c.country || c.company || "—"}</p>
                         </div>
                       </div>
                     </td>
@@ -253,6 +254,7 @@ export default function Clients() {
                       <p className="truncate">{c.email || "—"}</p>
                       <p className="text-xs text-slate-400">{c.phone || ""}</p>
                     </td>
+                    <td className="px-5 py-3.5 text-slate-600">{c.services || "—"}</td>
                     <td className="px-5 py-3.5">
                       <Badge variant="outline" className={STAGE_COLORS[c.stage]}>
                         {c.stage}
@@ -319,9 +321,15 @@ export default function Clients() {
                 <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} data-testid="client-phone-input" />
               </div>
             </div>
-            <div className="grid gap-2">
-              <Label>Company</Label>
-              <Input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} data-testid="client-company-input" />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Country</Label>
+                <Input value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} data-testid="client-country-input" placeholder="e.g. United States" />
+              </div>
+              <div className="grid gap-2">
+                <Label>Services</Label>
+                <Input value={form.services} onChange={(e) => setForm({ ...form, services: e.target.value })} data-testid="client-services-input" placeholder="e.g. Wealth Management" />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
@@ -336,7 +344,7 @@ export default function Clients() {
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label>Deal Value (₹)</Label>
+                <Label>Deal Value (USD)</Label>
                 <Input
                   type="number"
                   value={form.deal_value}

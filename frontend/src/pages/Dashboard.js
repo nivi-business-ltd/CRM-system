@@ -152,7 +152,7 @@ export default function Dashboard() {
             <div key={c.id} className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3">
               <div className="min-w-0">
                 <p className="text-sm font-medium text-slate-800 truncate">{c.name}</p>
-                <p className="text-xs text-slate-400 truncate">{c.company || c.email || "—"}</p>
+                <p className="text-xs text-slate-400 truncate">{c.country || c.company || c.email || "—"}</p>
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-sm font-semibold text-slate-700">{formatCurrency(c.deal_value)}</span>

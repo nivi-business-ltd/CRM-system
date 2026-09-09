@@ -21,7 +21,7 @@ export const STATUS_COLORS = {
 
 export function formatCurrency(n) {
   const v = Number(n || 0);
-  return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(v);
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(v);
 }
 
 export function initials(name) {
