@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import api, { formatApiErrorDetail } from "@/lib/api";
-import { initials } from "@/lib/crm";
+import { initials, formatCurrency, STAGE_COLORS } from "@/lib/crm";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { UserPlus, Trash2, ShieldCheck, Briefcase } from "lucide-react";
+import { UserPlus, Trash2, ShieldCheck, Briefcase, Users, ChevronRight } from "lucide-react";
 
 const EMPTY = { name: "", email: "", password: "" };
 
@@ -34,6 +34,20 @@ export default function Employees() {
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [viewEmp, setViewEmp] = useState(null);
+  const [viewClients, setViewClients] = useState([]);
+  const [loadingView, setLoadingView] = useState(false);
+
+  const openView = async (e) => {
+    setViewEmp(e);
+    setViewClients([]);
+    setLoadingView(true);
+    try {
+      const r = await api.get("/clients", { params: { assigned_to: e.id } });
+      setViewClients(r.data);
+    } catch (_) {}
+    setLoadingView(false);
+  };
 
   const load = () => api.get("/employees").then((r) => setEmployees(r.data));
 
@@ -83,7 +97,7 @@ export default function Employees() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {employees.map((e) => (
-          <Card key={e.id} className="p-5 border-slate-200 hover:shadow-md transition-all duration-200" data-testid={`employee-card-${e.id}`}>
+          <Card key={e.id} onClick={() => openView(e)} className="p-5 border-slate-200 hover:shadow-md hover:border-emerald-200 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer" data-testid={`employee-card-${e.id}`}>
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
@@ -95,7 +109,7 @@ export default function Employees() {
                 </div>
               </div>
               {e.role !== "admin" && (
-                <button onClick={() => setDeleteTarget(e)} data-testid={`delete-employee-${e.id}`} className="text-slate-300 hover:text-red-500 transition-colors">
+                <button onClick={(ev) => { ev.stopPropagation(); setDeleteTarget(e); }} data-testid={`delete-employee-${e.id}`} className="text-slate-300 hover:text-red-500 transition-colors">
                   <Trash2 className="h-4 w-4" />
                 </button>
               )}
@@ -108,8 +122,9 @@ export default function Employees() {
                 {e.role === "admin" ? <ShieldCheck className="h-3 w-3 mr-1" /> : null}
                 {e.role === "admin" ? "Administrator" : "Employee"}
               </Badge>
-              <span className="inline-flex items-center gap-1.5 text-sm text-slate-500">
-                <Briefcase className="h-4 w-4 text-slate-400" /> {e.client_count} clients
+              <span className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700">
+                <Briefcase className="h-4 w-4 text-emerald-500" /> {e.client_count} clients
+                <ChevronRight className="h-4 w-4 text-slate-300" />
               </span>
             </div>
           </Card>
@@ -142,6 +157,45 @@ export default function Employees() {
               {saving ? "Saving…" : "Add Employee"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!viewEmp} onOpenChange={(o) => !o && setViewEmp(null)}>
+        <DialogContent className="bg-white sm:max-w-lg max-h-[85vh] overflow-y-auto" data-testid="employee-clients-dialog">
+          <DialogHeader>
+            <DialogTitle className="font-display flex items-center gap-3">
+              <span className="h-10 w-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold">
+                {initials(viewEmp?.name)}
+              </span>
+              <span>
+                {viewEmp?.name}
+                <span className="block text-xs font-normal text-slate-400">Assigned clients</span>
+              </span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-2 space-y-2">
+            {loadingView && <p className="text-sm text-slate-400 py-8 text-center">Loading…</p>}
+            {!loadingView && viewClients.length === 0 && (
+              <div className="py-12 text-center">
+                <Users className="h-10 w-10 text-slate-200 mx-auto mb-3" />
+                <p className="text-slate-500 font-medium">No clients assigned yet</p>
+                <p className="text-sm text-slate-400">Assign clients to this team member from the Clients page.</p>
+              </div>
+            )}
+            {!loadingView &&
+              viewClients.map((c) => (
+                <div key={c.id} className="flex items-center justify-between rounded-xl border border-slate-100 px-4 py-3" data-testid={`assigned-client-${c.id}`}>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-slate-800 truncate">{c.name}</p>
+                    <p className="text-xs text-slate-400 truncate">{c.company || c.email || "—"}</p>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className="text-sm font-semibold text-slate-700">{formatCurrency(c.deal_value)}</span>
+                    <Badge variant="outline" className={STAGE_COLORS[c.stage]}>{c.stage}</Badge>
+                  </div>
+                </div>
+              ))}
+          </div>
         </DialogContent>
       </Dialog>
 

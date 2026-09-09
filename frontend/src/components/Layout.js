@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const NAV = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true, adminOnly: true },
   { to: "/clients", label: "Clients", icon: Users },
   { to: "/pipeline", label: "Pipeline", icon: KanbanSquare },
   { to: "/tasks", label: "Tasks", icon: CheckSquare },

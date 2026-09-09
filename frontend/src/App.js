@@ -39,7 +39,7 @@ function AppRoutes() {
           </Protected>
         }
       >
-        <Route index element={<Dashboard />} />
+        <Route index element={user?.role === "admin" ? <Dashboard /> : <Navigate to="/clients" replace />} />
         <Route path="clients" element={<Clients />} />
         <Route path="pipeline" element={<Pipeline />} />
         <Route path="tasks" element={<Tasks />} />

@@ -402,7 +402,7 @@ async def delete_task(task_id: str, user: dict = Depends(get_current_user)):
 
 # --- Dashboard ---
 @api_router.get("/dashboard/stats")
-async def dashboard_stats(user: dict = Depends(get_current_user)):
+async def dashboard_stats(user: dict = Depends(require_admin)):
     scope = client_scope(user)
     clients = await db.clients.find(scope).to_list(5000)
     total_clients = len(clients)
