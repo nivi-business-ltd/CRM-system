@@ -5,7 +5,7 @@ import os
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response, Query, UploadFile, File
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response, Query, UploadFile, File, BackgroundTasks, Header
 import pandas as pd
 import io
 from starlette.middleware.cors import CORSMiddleware
@@ -13,11 +13,14 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional
 from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo
 from bson import ObjectId
 import uuid
 import logging
 import bcrypt
 import jwt
+import hmac
+from email_service import notify_deal_closed, notify_task_due
 
 # --- DB ---
 mongo_url = os.environ['MONGO_URL']
@@ -319,8 +322,9 @@ async def get_client(client_id: str, user: dict = Depends(get_current_user)):
 
 
 @api_router.put("/clients/{client_id}")
-async def update_client(client_id: str, data: ClientInput, user: dict = Depends(get_current_user)):
-    await get_owned_client(client_id, user)
+async def update_client(client_id: str, data: ClientInput, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
+    existing = await get_owned_client(client_id, user)
+    old_stage = existing.get("stage")
     if data.stage not in STAGES:
         raise HTTPException(status_code=400, detail="Invalid stage")
     update = {
@@ -334,7 +338,35 @@ async def update_client(client_id: str, data: ClientInput, user: dict = Depends(
         update["assigned_to"] = data.assigned_to
     await db.clients.update_one({"id": client_id}, {"$set": update})
     doc = await db.clients.find_one({"id": client_id})
+    if data.stage in ("Closed Won", "Closed Lost") and data.stage != old_stage:
+        background_tasks.add_task(_safe_deal_email, doc)
     return await enrich_client(doc)
+
+
+async def _safe_deal_email(client_doc: dict):
+    try:
+        await notify_deal_closed(os.environ["ADMIN_EMAIL"], client_doc)
+    except Exception as e:
+        logger.error("Deal-closed email failed: %s", e)
+
+
+async def run_task_reminders():
+    owner = os.environ["ADMIN_EMAIL"]
+    tz = ZoneInfo("Asia/Kolkata")
+    today = datetime.now(tz).date()
+    tomorrow = today + timedelta(days=1)
+    for due_str, kind in ((today.isoformat(), "due_today"), (tomorrow.isoformat(), "due_tomorrow")):
+        tasks = await db.tasks.find({"due_date": due_str, "status": {"$ne": "Completed"}}).to_list(500)
+        for t in tasks:
+            key = {"task_id": t["id"], "kind": kind, "sent_date": today.isoformat()}
+            if await db.reminder_log.find_one(key):
+                continue
+            enriched = await enrich_task(t)
+            try:
+                await notify_task_due(owner, enriched, kind)
+                await db.reminder_log.insert_one({**key, "sent_at": datetime.now(timezone.utc).isoformat()})
+            except Exception as e:
+                logger.error("Task reminder email failed for %s: %s", t.get("id"), e)
 
 
 @api_router.delete("/clients/{client_id}")
@@ -446,6 +478,17 @@ async def get_stages():
     return STAGES
 
 
+@api_router.post("/cron/task-reminders")
+async def cron_task_reminders(background_tasks: BackgroundTasks, authorization: str = Header(None)):
+    # Cron endpoints must ack 2xx immediately; enqueue/background the actual work.
+    secret = os.environ["WEBHOOK_CRON_SECRET"]
+    token = authorization[7:] if authorization and authorization.startswith("Bearer ") else ""
+    if not token or not hmac.compare_digest(token, secret):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    background_tasks.add_task(run_task_reminders)
+    return {"status": "accepted"}
+
+
 @api_router.get("/")
 async def root():
     return {"message": "NIVI FINSERV CRM API"}
@@ -467,6 +510,7 @@ async def startup():
     await db.users.create_index("email", unique=True)
     await db.clients.create_index("assigned_to")
     await db.tasks.create_index("assigned_to")
+    await db.reminder_log.create_index([("task_id", 1), ("kind", 1), ("sent_date", 1)], unique=True)
     # seed admin
     admin_email = os.environ.get("ADMIN_EMAIL", "admin@example.com").lower()
     admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")
